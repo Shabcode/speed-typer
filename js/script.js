@@ -21,8 +21,10 @@ const words = [
     "feel", "believe", "ask", "tell", "say", "hear", "see", "touch", "smell", "taste"
   ];
 
-  document.addEventListener("DOMContentLoaded",() => {
+  document.addEventListener("DOMContentLoaded", () => {
+
     const speedTyper = new Game(words);
     const inputField = document.getElementById("input-field");
     inputField.addEventListener("input", () => speedTyper.onUserTyping());
+    
   });

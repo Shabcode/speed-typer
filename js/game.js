@@ -76,11 +76,9 @@ class WordGrid {
                 const wordElement = fillWords[i];
                 const wordText = wordElement.textContent;
                 const wordInstance = new Word(wordElement.textContent);
-
                 wordInstance.updateLetterFeedback(typedWords[i]);
             }
         }
-
 
         const firstLineWords = Array.from(this.wordGridContainer.children).slice(0, this.lineThreshold);
         const incompleteWords = firstLineWords
