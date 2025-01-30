@@ -57,19 +57,19 @@ div#game:focus {
     color: var(--textSecondary);
 }
 
-/* #game:focus #words {
-    filter: blur(0);
-} */
 
 #focus-error {
+    display: none;
     position: absolute;
-    inset: 0;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    font-weight: bold;
     text-align: center;
-    padding-top: 40px;
-}
-
-#game:focus #focus-error {
-    display:none;
+    padding: 10px 20px;
+    border-radius: 5px;
 }
 
 div.word {
@@ -110,9 +110,14 @@ div.word {
 }
 
 #game:focus #cursor {
-    visibility: visible;
+    display:block;
 }
 
 #game.over #focus-error {
     display: none;
 }
+
+#game:focus #focus-error {
+    display:none;
+}
+
