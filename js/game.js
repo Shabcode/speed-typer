@@ -5,24 +5,29 @@ class WordManager {
         this.wordsContainer = document.getElementById("words");
     }
 
+
     generateRandomWord() {
         const randomIndex = Math.floor(Math.random() * this.wordCount);
         return this.wordList[randomIndex];
     }
 
+
     formatWord(word) {
         return `<div class="word"><span class="letter">${word.split('').join('</span><span class="letter">')}</span></div>`;
     }
 
+
     populateWords(count = 200) {
-        this.wordsContainer.innerHTML = "";
-        for (let i = 0; i < count; i++) {
-            this.wordsContainer.innerHTML += this.formatWord(this.generateRandomWord());
-        }
+        const wordHTML = Array.from({ length: count }, () => 
+            this.formatWord(this.generateRandomWord())
+        ).join("");
+        this.wordsContainer.innerHTML = wordHTML;
         document.querySelector(".word").classList.add("current");
         document.querySelector(".letter").classList.add("current");
     }
+
 }
+
 
 class Stats {
     static calculateWPM(startTime, endTime, correctWords) {
@@ -31,64 +36,159 @@ class Stats {
         console.log(`Elapsed time: ${elapsedTimeSeconds}s, Correct words: ${correctWords}, WPM: ${(correctWords / elapsedTimeSeconds) * 60}`);
         return Math.round((correctWords / elapsedTimeSeconds) * 60);
     }
+
 }
+
 
 class InputHandler {
     constructor(game) {
         this.game = game;
+        this.isWordComplete = false;
         this.initListeners();
     }
+
 
     initListeners() {
         document.getElementById("game").addEventListener("keyup", (e) => this.handleKeyup(e));
         document.getElementById("newGameBtn").addEventListener("click", () => this.game.newGame());
     }
 
+
     handleKeyup(event) {
+        event.preventDefault();
+        console.log("Keyup event detected. Key:", event.key);
+
+        const gameElement = document.getElementById("game");
+        if (gameElement && document.activeElement !== gameElement) {
+            gameElement.focus();
+        }
+        console.log("Keyup event detected. Key:", event.key); // Debug log
+        console.log("Focused element:", document.activeElement); // Debug log
+
         if (!this.game.timer && event.key.length === 1) {
+            console.log("Starting timer...");
             this.game.startTimer();
         }
+
         if (this.game.isGameOver) {
+            console.log("Game is over. Ignoring input.");
             return;
         }
+
         this.processInput(event.key);
         this.updateCursorPosition();
+
+        if (window.innerWidth < 1000 || window.innerHeight < 1000) {
+            window.scrollTo(0, window.scrollY);
+        }
     }
 
-    updateCursorPosition () {
+
+    updateCursorPosition() {
         const currentLetter = document.querySelector(".letter.current");
         if (currentLetter) {
             const pos = currentLetter.getBoundingClientRect();
             const cursor = document.getElementById("cursor");
-
             cursor.style.top = `${pos.top + window.scrollY}px`
             cursor.style.left = `${pos.left + window.scrollX}px`
-        
+            
+            const windowHeigth = window.innerHeight;
+            const cursorBottom = pos.top + cursor.offsetHeight;
+            const scrollLimit = 100;
+            const headerHeight = document.querySelector("header").offsetHeight;
+
+
+            if (cursorBottom > windowHeigth - scrollLimit) {
+                const scrollY = window.scrollY;
+                if (scrollY < headerHeight) {
+                    window.scrollTo(0, headerHeight);
+                } else {
+                    window.scrollBy(0, 10);
+                }
+
+            }
+
+            else if (pos.top < headerHeight) {
+                const scrollY = window.scrollY - 50;
+                window.scrollTo(0, Math.max(scrollY, 0));
+            }
+
         }
+
     }
 
     processInput(key) {
         const currentLetter = document.querySelector(".letter.current");
         const expected = currentLetter?.innerText || " ";
 
+
         if (key.length === 1 && key !== " ") {
+            console.log("Regular key pressed. Expected:", expected);
             if (currentLetter) {
                 currentLetter.classList.add(key === expected ? "correct" : "incorrect");
                 currentLetter.classList.remove("current");
-                if (currentLetter.nextSibling) {
+
+                const isLastLetter = !currentLetter.nextSibling;
+                
+                if (isLastLetter) {
+                    console.log("Last letter of the word. Adding space element.");
+                    const currentWord = document.querySelector(".word.current");
+                    if (currentWord) {
+                        const spaceElement = document.createElement("span");
+                        spaceElement.classList.add("letter", "space");
+                        spaceElement.innerText = " ";
+                        currentWord.appendChild(spaceElement);
+    
+                        spaceElement.classList.add("current");
+                    }
+                } else {
+                    console.log("Moving to next letter in the same word.");
                     currentLetter.nextSibling.classList.add("current");
                 }
             }
+            this.isWordComplete = false;
         } else if (key === " ") {
+            console.log("Spacebar pressed. Checking word correctness...");
             if (expected !== " ") {
                 document.querySelectorAll(".word.current .letter:not(.correct)")
                     .forEach(letter => letter.classList.add("incorrect"));
             }
+
+            this.checkCurrentWordCorrectness();
             this.moveToNextWord();
+            this.isWordComplete = true;
+
         } else if (key === "Backspace") {
-            this.handleBackspace();
+            console.log("Backspace pressed. Handling backspace...");
+            if (!this.isWordComplete) {
+                this.handleBackspace();
+            }
         }
     }
+
+    checkCurrentWordCorrectness() {
+        console.log("Checking current word correctness...");
+
+        const currentWord = document.querySelector(".word.current");
+        if(!currentWord) {
+            console.log("No current word found.");
+            return;
+        }
+
+        const letters = [...currentWord.querySelectorAll(".letter:not(.space)")];
+        console.log("Letters in current word:", letters);
+
+        const allCorrect = letters.every(letter => letter.classList.contains("correct"));
+        console.log("All letters correct?", allCorrect);
+        
+        if (allCorrect) {
+            this.game.correctWords++;
+            console.log("Correct word! Total correct words:", this.game.correctWords);
+        } else {
+            console.log("Word is not correct."); 
+        }
+    }
+
 
     moveToNextWord() {
         const currentWord = document.querySelector(".word.current");
@@ -96,33 +196,53 @@ class InputHandler {
             return;
         }
 
-        const letters = [...currentWord.querySelectorAll(".letter")];
-        const allCorrect = letters.every(letter => letter.classList.contains("correct"));
-        if (allCorrect) {
-            this.game.correctWords++;
-        }
-
         currentWord.classList.remove("current");
 
         if (currentWord.nextSibling) {
-            currentWord.nextSibling.classList.add("current");
-        }
+            const nextWord = currentWord.nextSibling;
+            nextWord.classList.add("current");
+        
 
-        const firstLetter = currentWord.nextSibling.querySelector(".letter");
-        if (firstLetter) {
-            firstLetter.classList.add("current")
-        }
+            const firstLetter = nextWord.querySelector(".letter");
+            if (firstLetter) {
+                firstLetter.classList.add("current")
+            }
     }
+    const spaceElement = currentWord.querySelector(".letter.space");
+    if (spaceElement) {
+        spaceElement.remove();
+    }
+}
 
     handleBackspace() {
         const currentLetter = document.querySelector(".letter.current");
-        if (currentLetter && currentLetter.previousSibling) {
-            currentLetter.classList.remove("current");
-            currentLetter.previousSibling.classList.add("current");
-            currentLetter.previousSibling.classList.remove("incorrect", "correct");
+
+        if (currentLetter) {
+            console.log("Current letter:", currentLetter);
+            console.log("Next Sibling: ", currentLetter.nextSibling);
+            console.log("Previous sibling: ", currentLetter.previousSibling);
+
+            if (currentLetter.classList.contains("incorrect")) {
+                currentLetter.classList.remove("incorrect");
+                currentLetter.classList.add("current");
+            } else if (currentLetter.previousSibling) {
+                currentLetter.classList.remove("current");
+                currentLetter.previousSibling.classList.add("current");
+                currentLetter.previousSibling.classList.remove("incorrect", "correct");
+            } else {
+                console.log("At the start of word no previous letter to move");
+            }
+
         }
+
+        window.scrollTo(0, window.scrollY);
+
+        this.updateCursorPosition();
+
     }
+
 }
+
 
 class Game {
     constructor() {
@@ -137,53 +257,89 @@ class Game {
         this.init();
     }
 
+
     init() {
         this.newGame();
         this.trackWindowFocus();
+
+        window.addEventListener("DOMContentLoaded", () => {
+            const gameElement = document.getElementById("game");
+            if (gameElement) {
+                gameElement.focus();
+            }
+        });
     }
 
-    trackWindowFocus () {
+
+    trackWindowFocus() {
+
         window.addEventListener("focus", () => {
             this.removeBlur();
+            this.hideFocusMsg();
         });
+
 
         window.addEventListener("blur", () => {
             this.addBlur();
+            this.showFocusMsg();
         });
     }
+
 
     removeBlur() {
         const words = document.getElementById("words");
         words.style.filter = "blur(0)";
     }
 
+
     addBlur() {
         const words = document.getElementById("words");
         words.style.filter = "blur(5px)"
+
     }
 
+
+    showFocusMsg() {
+        document.getElementById("focus-error").style.display = "block";
+    }
+
+
+    hideFocusMsg() {
+        document.getElementById("focus-error").style.display = "none";
+    }
+
+
     newGame() {
+        if (this.timer) {
+            clearInterval(this.timer);
+            this.timer = null;
+        }
+
         this.wordManager.populateWords();
         document.getElementById("info").innerText = this.gameTime / 1000;
-        this.timer = null;
         this.removeBlur();
         this.isGameOver = false;
         this.correctWords = 0;
         this.resetCursor();
+
+        const gameElement = document.getElementById("game");
+        if(gameElement) {
+            gameElement.focus();
+        }
     }
 
-    resetCursor () {
+
+    resetCursor() {
         const firstLetter = document.querySelector(".letter");
         if (firstLetter) {
             firstLetter.offsetHeight;
-
             const pos = firstLetter.getBoundingClientRect();
             const cursor = document.getElementById("cursor");
-
             cursor.style.top = `${pos.top}px`;
             cursor.style.left = `${pos.left}px`;
         }
     }
+
 
     startTimer() {
         this.startTime = Date.now();
@@ -197,23 +353,23 @@ class Game {
         }, 1000);
     }
 
+
     gameOver() {
+        console.log("Game over. Calculating WPM...");
         clearInterval(this.timer);
         this.isGameOver = true;
         document.getElementById("game").classList.add("over");
 
         const currentWord = document.querySelector(".word.current");
-        if(currentWord) {
-            const letters = [...currentWord.querySelectorAll(".letter")];
-            const allCorrect = letters.every(letter => letter.classList.contains("correct"));
-            if (allCorrect) {
-                this.correctWords++;
-            }
-        }
 
-            const wpm = Stats.calculateWPM(this.startTime, Date.now(),this.correctWords);
-            document.getElementById("info").innerText = `WPM: ${wpm}`;
+        if (currentWord) {
+            console.log("Checking final word for correctness");
+            this.inputHandler.checkCurrentWordCorrectness();
+        }
+        const wpm = Stats.calculateWPM(this.startTime, Date.now(), this.correctWords);
+        console.log("WPM calculated:", wpm);
+        document.getElementById("info").innerText = `WPM: ${wpm}`; 
     }
 }
 
-const speedTyper = new Game();
+const speedTyper = new Game(); 
