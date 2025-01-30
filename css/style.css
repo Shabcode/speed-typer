@@ -53,13 +53,13 @@ div#game:focus {
 }
 
 #words {
-    filter: blur(5px);
+    transition: filter 0.3s ease;
     color: var(--textSecondary);
 }
 
-#game:focus #words {
+/* #game:focus #words {
     filter: blur(0);
-}
+} */
 
 #focus-error {
     position: absolute;
@@ -99,18 +99,18 @@ div.word {
 }
 
 #cursor {
-    display:none;
     width: 2px;
     height: 1.5rem;
     background: var(--primaryColor);
-    position: fixed;
-    top: 195px;
-    left: 15px;
-    animation: blink .3s infinite;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transition: top 0.1s, left 0.1s;
+    animation: blink 0.5s infinite;
 }
 
 #game:focus #cursor {
-    display: block;
+    visibility: visible;
 }
 
 #game.over #focus-error {
