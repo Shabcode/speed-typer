@@ -5,17 +5,14 @@ class WordManager {
         this.wordsContainer = document.getElementById("words");
     }
 
-
     generateRandomWord() {
         const randomIndex = Math.floor(Math.random() * this.wordCount);
         return this.wordList[randomIndex];
     }
 
-
     formatWord(word) {
         return `<div class="word"><span class="letter">${word.split('').join('</span><span class="letter">')}</span></div>`;
     }
-
 
     populateWords(count = 200) {
         const wordHTML = Array.from({ length: count }, () => 
@@ -28,7 +25,6 @@ class WordManager {
 
 }
 
-
 class Stats {
     static calculateWPM(startTime, endTime, correctWords) {
         const elapsedTimeSeconds = (endTime - startTime) / 1000;
@@ -39,7 +35,6 @@ class Stats {
 
 }
 
-
 class InputHandler {
     constructor(game) {
         this.game = game;
@@ -47,17 +42,15 @@ class InputHandler {
         this.initListeners();
     }
 
-
     initListeners() {
         document.getElementById("game").addEventListener("keyup", (e) => this.handleKeyup(e));
         document.getElementById("newGameBtn").addEventListener("click", () => this.game.newGame());
     }
 
-
     handleKeyup(event) {
         event.preventDefault();
         console.log("Keyup event detected. Key:", event.key);
-
+        
         const gameElement = document.getElementById("game");
         if (gameElement && document.activeElement !== gameElement) {
             gameElement.focus();
@@ -83,7 +76,6 @@ class InputHandler {
         }
     }
 
-
     updateCursorPosition() {
         const currentLetter = document.querySelector(".letter.current");
         if (currentLetter) {
@@ -95,7 +87,7 @@ class InputHandler {
             const windowHeigth = window.innerHeight;
             const cursorBottom = pos.top + cursor.offsetHeight;
             const scrollLimit = 100;
-            const headerHeight = document.querySelector("header").offsetHeight;
+            const headerHeight = document.querySelector("main").offsetHeight;
 
 
             if (cursorBottom > windowHeigth - scrollLimit) {
@@ -103,16 +95,13 @@ class InputHandler {
                 if (scrollY < headerHeight) {
                     window.scrollTo(0, headerHeight);
                 } else {
-                    window.scrollBy(0, 10);
+                    window.scrollBy(0, 0);
                 }
-
             }
-
             else if (pos.top < headerHeight) {
                 const scrollY = window.scrollY - 50;
                 window.scrollTo(0, Math.max(scrollY, 0));
             }
-
         }
 
     }
@@ -121,13 +110,11 @@ class InputHandler {
         const currentLetter = document.querySelector(".letter.current");
         const expected = currentLetter?.innerText || " ";
 
-
         if (key.length === 1 && key !== " ") {
             console.log("Regular key pressed. Expected:", expected);
             if (currentLetter) {
                 currentLetter.classList.add(key === expected ? "correct" : "incorrect");
                 currentLetter.classList.remove("current");
-
                 const isLastLetter = !currentLetter.nextSibling;
                 
                 if (isLastLetter) {
@@ -138,7 +125,6 @@ class InputHandler {
                         spaceElement.classList.add("letter", "space");
                         spaceElement.innerText = " ";
                         currentWord.appendChild(spaceElement);
-    
                         spaceElement.classList.add("current");
                     }
                 } else {
@@ -234,13 +220,9 @@ class InputHandler {
             }
 
         }
-
         window.scrollTo(0, window.scrollY);
-
         this.updateCursorPosition();
-
     }
-
 }
 
 
@@ -277,20 +259,16 @@ class Game {
             this.removeBlur();
             this.hideFocusMsg();
         });
-
-
         window.addEventListener("blur", () => {
             this.addBlur();
             this.showFocusMsg();
         });
     }
 
-
     removeBlur() {
         const words = document.getElementById("words");
         words.style.filter = "blur(0)";
     }
-
 
     addBlur() {
         const words = document.getElementById("words");
@@ -298,16 +276,13 @@ class Game {
 
     }
 
-
     showFocusMsg() {
         document.getElementById("focus-error").style.display = "block";
     }
 
-
     hideFocusMsg() {
         document.getElementById("focus-error").style.display = "none";
     }
-
 
     newGame() {
         if (this.timer) {
@@ -328,7 +303,6 @@ class Game {
         }
     }
 
-
     resetCursor() {
         const firstLetter = document.querySelector(".letter");
         if (firstLetter) {
@@ -339,7 +313,6 @@ class Game {
             cursor.style.left = `${pos.left}px`;
         }
     }
-
 
     startTimer() {
         this.startTime = Date.now();
@@ -352,7 +325,6 @@ class Game {
             }
         }, 1000);
     }
-
 
     gameOver() {
         console.log("Game over. Calculating WPM...");
