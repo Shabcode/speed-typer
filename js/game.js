@@ -103,7 +103,6 @@ class InputHandler {
                 window.scrollTo(0, Math.max(scrollY, 0));
             }
         }
-
     }
 
     processInput(key) {
