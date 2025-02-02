@@ -68,12 +68,13 @@ class InputHandler {
             return;
         }
 
+         if (event.key === " ") {
+             event.preventDefault();
+         }
         this.processInput(event.key);
         this.updateCursorPosition();
 
-        if (window.innerWidth < 1000 || window.innerHeight < 1000) {
-            window.scrollTo(0, window.scrollY);
-        }
+        //window.scrollTo(0,window.scrollY());
     }
 
     updateCursorPosition() {
@@ -90,15 +91,10 @@ class InputHandler {
             const headerHeight = document.querySelector("main").offsetHeight;
 
 
+            const scrollAmount = cursorBottom - (windowHeigth - scrollLimit);
             if (cursorBottom > windowHeigth - scrollLimit) {
-                const scrollY = window.scrollY;
-                if (scrollY < headerHeight) {
-                    window.scrollTo(0, headerHeight);
-                } else {
-                    window.scrollBy(0, 0);
-                }
-            }
-            else if (pos.top < headerHeight) {
+                window.scrollBy(0, Math.round(scrollAmount,0));
+            } else if (pos.top < headerHeight) {
                 const scrollY = window.scrollY - 50;
                 window.scrollTo(0, Math.max(scrollY, 0));
             }
